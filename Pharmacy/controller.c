@@ -80,15 +80,23 @@ Medicine* medc_update_start(MedController* medc, char* name, char* conc) {
 }
 
 int medc_update_end(MedController* medc, Medicine* med, char* name, char* conc, int quantity, int price) {
-	// will cause unexpected behaviour when memory allocations fail
+	// try pre-allocating the new character arrays
+	char* newName = (char*)malloc(strlen(name) * sizeof(char) + 1);
+	if (newName == NULL)
+		return 1;
+	char* newConc = (char*)malloc(strlen(conc) * sizeof(char) + 1);
+	if (newConc == NULL) {
+		free(newName);
+		return 1;
+	}
+	// de-allocate old char arrays
 	free(med->name);
 	free(med->conc);
-
-	med->name = (char*)malloc(strlen(name) * sizeof(char) + 1);
-	if (med->name == NULL) return 1;
-	med->conc = (char*)malloc(strlen(conc) * sizeof(char) + 1);
-	if (med->conc == NULL) return 1;
-
+	// put new arrays in place
+	med->name = newName;
+	med->conc = newConc;
+	
+	// copy new values
 	strcpy(med->name, name);
 	strcpy(med->conc, conc);
 	med->quantity = quantity;
