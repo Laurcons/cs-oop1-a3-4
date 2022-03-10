@@ -82,7 +82,7 @@ void vect_sort(Vector* arr, VectSortingFunc compare) {
 			void* first = arr->elem[i];
 			void* second = arr->elem[i + 1];
 			int cmp = compare(first, second);
-			if (cmp < 0) {
+			if (cmp > 0) {
 				// switch
 				hadChanges = 1;
 				arr->elem[i] = second;

@@ -13,6 +13,17 @@ Ui* ui_create() {
 
 	ui->medc = medc_create();
 
+	medc_add(ui->medc, "Advil", "100%", 10, 100);
+	medc_add(ui->medc, "Xanax", "90%", 23, 200);
+	medc_add(ui->medc, "NoSpa", "95%", 27, 300);
+	medc_add(ui->medc, "Parasinus", "85%", 23, 100);
+	medc_add(ui->medc, "Aspenter", "80%", 25, 150);
+	medc_add(ui->medc, "Faringosept", "100%", 16, 160);
+	medc_add(ui->medc, "Calcidrin", "95%", 120, 120);
+	medc_add(ui->medc, "Fenistil", "80%", 18, 200);
+	medc_add(ui->medc, "Colebil", "85%", 26, 250);
+	medc_add(ui->medc, "Paracetamol", "55%", 27, 230);
+
 	if (ui->medc == NULL) {
 		free(ui);
 		return NULL;
@@ -157,6 +168,11 @@ void do_suboption_ac(Ui* ui) {
 	printf("Successfully deleted.");
 }
 
+// kudos to Rapeanu
+int medcmp(Medicine* first, Medicine* second) {
+	return strcmp(first->name, second->name);
+}
+
 void do_option_b(Ui* ui) {
 	char* searchStr;
 
@@ -166,15 +182,19 @@ void do_option_b(Ui* ui) {
 		return;
 	}
 
-	printf("Enter a search string: ");
+	printf("Enter a search string (or - to get all): ");
 	scanf_s("%s", searchStr, 255);
+
+	if (strcmp(searchStr, "-") == 0) {
+		searchStr[0] = '\0';
+	}
 
 	// create a vector with freeing disabled
 	Vector* list = vect_create_ex(3, NULL);
 	// fill it
 	medc_find_str(ui->medc, searchStr, list);
 	// sort it
-	vect_sort(list, strcmp);
+	vect_sort(list, &medcmp);
 
 	// print it
 	for (int i = 0; i < vect_len(list); i++) {
@@ -201,6 +221,7 @@ void do_option_a(Ui* ui) {
 	switch (opt) {
 	case 'a': do_suboption_aa(ui); break;
 	case 'b': do_suboption_ab(ui); break;
+	case 'c': do_suboption_ac(ui); break;
 	}
 
 }

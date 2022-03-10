@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "repository.h"
+#include <string.h>
 
 MedController* medc_create() {
 	MedController* medc = malloc(sizeof(MedController));
@@ -40,17 +41,37 @@ int medc_add(MedController* medc, char* name, char* conc, int quantity, int pric
 	return ret;
 }
 
-void medc_find_str(MedController* medc, char* name, Vector* out) {
+int medc_find_str(MedController* medc, char* name, Vector* out) {
+	char* lowerSource = NULL;
+
 	Vector* all = medr_get_all(medc->repo);
 	int isEmpty = strlen(name) == 0;
 	for (int i = 0; i < vect_len(all); i++) {
 		Medicine* med = (Medicine*)vect_get_at(all, i);
 
-		if (strstr(med->name, name) != NULL || isEmpty) {
+		int len = strlen(med->name);
+		// thanks to Stefania for this fix
+		if (len < 0)
+			return 1;
+		// create a buffer to store the lowercase string in
+		lowerSource = (char*)malloc((len + 1) * sizeof(char));
+		if (lowerSource == NULL) {
+			return 2;
+		}
+		for (int i = 0; i < len; i++) {
+			lowerSource[i] = med->name[i];
+			if (med->name[i] >= 'A' && med->name[i] <= 'Z')
+				lowerSource[i] += 32;
+		}
+		lowerSource[len] = '\0';
+
+		if (strstr(lowerSource, name) != NULL || isEmpty) {
 			// found! add to out vector
 			vect_append(out, med);
 		}
+		free(lowerSource);
 	}
+	return 0;
 }
 
 Medicine* medc_update_start(MedController* medc, char* name, char* conc) {

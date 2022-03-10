@@ -15,5 +15,5 @@ Medicine* medc_update_start(MedController*, char*, char*);
 int medc_update_end(MedController*, Medicine*, char*, char*, int, int);
 /* Tries to remove a medicine. Returns 0 if successful, 1 if not found. */
 int medc_remove(MedController*, char*, char*);
-void medc_find_str(MedController*, char*, Vector*);
+int medc_find_str(MedController*, char*, Vector*);
 Vector* medc_get_all(MedController*);
