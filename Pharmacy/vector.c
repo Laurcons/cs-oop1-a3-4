@@ -1,16 +1,12 @@
+#include "base.h"
 #include "vector.h"
-
-void defaultDestroy(void* elem) {
-	free(elem);
-}
 
 void noDestroy(void* elem) {
 	// do nothing
 }
 
 Vector* vect_create() {
-	VectDestroyFunc func = &defaultDestroy;
-	return vect_create_ex(3, func);
+	return vect_create_ex(3, &free);
 }
 
 void vect_destroy(Vector* arr) {
@@ -65,6 +61,7 @@ void* vect_get_at(Vector* arr, int pos) {
 int vect_set_at(Vector* arr, int pos, void* el) {
 	if (pos < 0 || pos >= arr->len)
 		return 1;
+	arr->destroy_func(arr->elem[pos]);
 	arr->elem[pos] = el;
 	return 0;
 }
@@ -92,4 +89,12 @@ void vect_sort(Vector* arr, VectSortingFunc compare) {
 		if (hadChanges == 0)
 			break;
 	}
+}
+
+void* vect_pop(Vector* vect) {
+	if (vect->len == 0)
+		return NULL;
+	void* elem = vect->elem[vect->len - 1];
+	vect->len--;
+	return elem;
 }

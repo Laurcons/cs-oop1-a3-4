@@ -1,7 +1,6 @@
+#include "base.h"
 #include "ui.h"
-#include <stdio.h>
 #include <conio.h>
-#include <crtdbg.h>
 
 void noFree(void* discard) {}
 
@@ -13,6 +12,12 @@ Ui* ui_create() {
 
 	ui->medc = medc_create();
 
+	if (ui->medc == NULL) {
+		free(ui);
+		return NULL;
+	}
+
+	medc_set_history_enabled(ui->medc, 0);
 	medc_add(ui->medc, "Advil", "100%", 10, 100);
 	medc_add(ui->medc, "Xanax", "90%", 23, 200);
 	medc_add(ui->medc, "NoSpa", "95%", 27, 300);
@@ -23,11 +28,7 @@ Ui* ui_create() {
 	medc_add(ui->medc, "Fenistil", "80%", 18, 200);
 	medc_add(ui->medc, "Colebil", "85%", 26, 250);
 	medc_add(ui->medc, "Paracetamol", "55%", 27, 230);
-
-	if (ui->medc == NULL) {
-		free(ui);
-		return NULL;
-	}
+	medc_set_history_enabled(ui->medc, 1);
 
 	return ui;
 }
@@ -42,6 +43,9 @@ void print_menu() {
 	printf("What do you want to do?\n");
 	printf("a. Modify medications\n");
 	printf("b. Find medications by string\n");
+	printf("c. Find medications in short supply\n");
+	printf("d. Undo\n");
+	printf("e. Redo\n");
 	printf("x. Exit\n");
 }
 
@@ -72,7 +76,7 @@ void do_suboption_aa(Ui* ui) {
 
 	int ret = medc_add(ui->medc, name, conc, quantity, price);
 	if (ret == 1) {
-		printf("Medicine already exists, quantities were merged and price dropped\n");
+		printf("Medicine already exists, quantities were merged and new price dropped\n");
 	}
 
 	free(name);
@@ -175,6 +179,7 @@ int medcmp(Medicine* first, Medicine* second) {
 
 void do_option_b(Ui* ui) {
 	char* searchStr;
+	int res;
 
 	searchStr = (char*)malloc(256 * sizeof(char));
 	if (searchStr == NULL) {
@@ -190,9 +195,14 @@ void do_option_b(Ui* ui) {
 	}
 
 	// create a vector with freeing disabled
-	Vector* list = vect_create_ex(3, NULL);
+	Vector* list = vect_create_ex(3, &med_destroy);
 	// fill it
-	medc_find_str(ui->medc, searchStr, list);
+	res = medc_find_str(ui->medc, searchStr, list);
+	if (res != 0) {
+		printf("Memory error.");
+		vect_destroy(list);
+		return;
+	}
 	// sort it
 	vect_sort(list, &medcmp);
 
@@ -226,6 +236,64 @@ void do_option_a(Ui* ui) {
 
 }
 
+void do_option_c(Ui* ui) {
+	int quant = 0, res;
+
+	printf("Enter the quantity treshold: ");
+	scanf_s("%d", &quant);
+
+	Vector* out = vect_create_ex(3, &med_destroy);
+	res = medc_find_short_supply(ui->medc, quant, out);
+	if (res != 0) {
+		printf("Memory error.");
+		vect_destroy(out);
+		return;
+	}
+
+	// sort it
+	vect_sort(out, &medcmp);
+
+	// print it
+	for (int i = 0; i < vect_len(out); i++) {
+		Medicine* med = (Medicine*)vect_get_at(out, i);
+		printf("\"%s\" %s %dx $%d\n",
+			med->name,
+			med->conc,
+			med->quantity,
+			med->price);
+	}
+
+	vect_destroy(out);
+}
+
+void do_option_d(Ui* ui) {
+	int ret = medc_undo(ui->medc);
+
+	if (ret == 1) {
+		printf("Nothing to undo.");
+	}
+	else if (ret == 0) {
+		printf("Successfully undone.");
+	}
+	else {
+		printf("Something probably caught fire idk.");
+	}
+}
+
+void do_option_e(Ui* ui) {
+	int ret = medc_redo(ui->medc);
+
+	if (ret == 1) {
+		printf("Nothing to redo.");
+	}
+	else if (ret == 0) {
+		printf("Successfully redone.");
+	}
+	else {
+		printf("Something probably caught fire idk.");
+	}
+}
+
 void ui_start(Ui* ui) {
 	char c;
 
@@ -239,6 +307,9 @@ void ui_start(Ui* ui) {
 		switch (c) {
 		case 'a': do_option_a(ui); break;
 		case 'b': do_option_b(ui); break;
+		case 'c': do_option_c(ui); break;
+		case 'd': do_option_d(ui); break;
+		case 'e': do_option_e(ui); break;
 		}
 
 		printf("\n\n");

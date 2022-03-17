@@ -1,3 +1,4 @@
+#include "base.h"
 #include "repository.h"
 
 MedRepo* medr_create() {
@@ -8,6 +9,11 @@ MedRepo* medr_create() {
 	if (repo->vector == NULL) return NULL;
 
 	return repo;
+}
+
+void medr_destroy(MedRepo* repo) {
+	vect_destroy(repo->vector);
+	free(repo);
 }
 
 void medr_add(MedRepo* medrepo, Medicine* med) {
@@ -36,11 +42,12 @@ Vector* medr_get_all(MedRepo* medrepo) {
 }
 
 void medr_delete_at(MedRepo* medrepo, int pos) {
+	Medicine* med = (Medicine*)vect_get_at(medrepo->vector, pos);
+	// deallocate
+	med_destroy(med);
 	// rearrange elements
 	for (int i = pos; i < vect_len(medrepo->vector) - 1; i++) {
-		vect_set_at(medrepo->vector, i,
-			vect_get_at(medrepo->vector, i + 1)
-		);
+		medrepo->vector->elem[i] = medrepo->vector->elem[i + 1];
 	}
 	// decrement length
 	medrepo->vector->len--;
@@ -58,7 +65,9 @@ int medr_len(MedRepo* medrepo) {
 	return vect_len(medrepo->vector);
 }
 
-void medr_destroy(MedRepo* repo) {
-	vect_destroy(repo->vector);
-	free(repo);
+void medr_clear(MedRepo* medr) {
+	// just reallocate the vector lol idk
+	// don't even error handle coz fuck that shit
+	vect_destroy(medr->vector);
+	medr->vector = vect_create_ex(3, &med_destroy);
 }

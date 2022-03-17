@@ -1,5 +1,4 @@
 #pragma once
-#include <stdlib.h>
 
 typedef void (*VectDestroyFunc)(void*);
 typedef int (*VectSortingFunc)(void*, void*);
@@ -29,3 +28,6 @@ int vect_set_at(Vector*, int, void*);
 int vect_len(Vector*);
 /* Sort an array using a predicate. */
 void vect_sort(Vector*, VectSortingFunc);
+/* Returns the last element of the vector and removes it from the vector,
+without deallocating it. */
+void* vect_pop(Vector*);

@@ -1,3 +1,4 @@
+#include "base.h"
 #include "domain.h"
 
 Medicine* med_create(char* name, char* concentration, int quantity, int price) {
@@ -15,6 +16,15 @@ Medicine* med_create(char* name, char* concentration, int quantity, int price) {
 	med->quantity = quantity;
 	med->price = price;
 	return med;
+}
+
+Medicine* med_copy(Medicine* med) {
+	return med_create(
+		med->name,
+		med->conc,
+		med->quantity,
+		med->price
+	);
 }
 
 void med_destroy(Medicine* med) {
